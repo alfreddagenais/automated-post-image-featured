@@ -36,6 +36,10 @@ if ( function_exists( 'add_theme_support' ) ) {
 		public static function install() {
 			// do not generate any output here
 
+			if (! wp_next_scheduled ( 'apif_cron_daily_event' )) {
+				wp_schedule_event( time(), 'daily', 'apif_cron_daily_event');
+			}
+
 			$aIncludePostTypes      = array( 'post' );
 			$aIncludePostTypes      = apply_filters( 'apif_post_types_include', $aIncludePostTypes );
 
@@ -137,13 +141,20 @@ if ( function_exists( 'add_theme_support' ) ) {
 		}
 
 		/**
+		 * Uninstall function.
+		 */
+		public static function uninstall() {
+			wp_clear_scheduled_hook('apif_cron_daily_event');
+		}
+
+		/**
 		 * Main function.
 		 *
 		 * @param object $post Post Object.
 		 */
 		public static function addFeaturedImage( $oPost ) {
 			
-			$bAlreadyHasThumb 		= has_post_thumbnail();
+			$bAlreadyHasThumb 		= has_post_thumbnail( $oPost );
 			$sPostType         		= get_post_type( $oPost->ID );
 			$aExcludePostTypes      = array( '' );
 			$aExcludePostTypes      = apply_filters( 'apif_post_types_exclude', $aExcludePostTypes );
@@ -212,25 +223,18 @@ if ( function_exists( 'add_theme_support' ) ) {
 				);
 				$aQueryArgs = apply_filters( 'apif_addfeaturedimage_queryargs', $aQueryArgs );
 
-				// The Query
-				$oQuery = new WP_Query( $aQueryArgs );
+				$aAttachments = get_posts( $aQueryArgs );
+				if( is_array($aAttachments) && count($aAttachments) > 0 ){
 
-				// The Loop
-				if ( $oQuery->have_posts() ) {
-				
-					while ( $oQuery->have_posts() ) {
-						$oQuery->the_post();
-
+					foreach ( $aAttachments as $nP => $aAttachment ) {
+						
 						// Add attachment ID.
-						$nThumbnailID = get_the_ID();
-						update_post_meta( $oPost->ID, '_thumbnail_id', $nThumbnailID, TRUE );
+						update_post_meta( $oPost->ID, '_thumbnail_id', $aAttachment->ID, TRUE );
+						update_post_meta( $aAttachment->ID, '_rel_post_id', $oPost->ID, TRUE );
 
 					}
 
 				}
-
-				// Restore original Post Data
-				wp_reset_postdata();
 
 			}
 
@@ -239,8 +243,8 @@ if ( function_exists( 'add_theme_support' ) ) {
 		/**
 		 * Add Attachment Meta 
 		 *
-		 * @param array $aMeta Meta Array
-		 * @param array $aMeta Meta Array
+		 * @param array $aMeta
+		 * @param array $aMeta
 		 * @return array $aMeta Meta
 		 */
 		public static function addAttachmentMeta( $aMeta, $nAttachmentID ) {
@@ -251,14 +255,91 @@ if ( function_exists( 'add_theme_support' ) ) {
 
 		}
 
+		/**
+		 * Insert Custom Columns
+		 *
+		 * @param array $aColumns
+		 */
+		public static function customColumns( $aColumns ) {
+
+			$aColumns['featured_image'] = 'Image';
+			return $aColumns;
+
+		}
+
+		/**
+		 * Set Custom Columns Data
+		 *
+		 * @param string $sColumnName
+		 * @param integer $PostID
+		 */
+		public static function customColumnsData( $sColumnName, $PostID ) {
+			
+			switch ( $sColumnName ) {
+				case 'featured_image':
+					the_post_thumbnail( 'thumbnail' );
+
+				break;
+			}
+
+		}
+
+		/**
+		 * Cron runned daily
+		 */
+		public static function cronDaily() {
+
+			$aIncludePostTypes      = array( 'post' );
+			$aIncludePostTypes      = apply_filters( 'apif_post_types_include', $aIncludePostTypes );
+
+			// Select Post and associate with thubmnail
+			$aQueryArgs = array(
+
+				'post_type'       	=> $aIncludePostTypes,
+				'posts_per_page' 	=> -1,
+				'meta_query' 		=> array(
+
+					'relation' => 'OR',
+					array(
+
+						'key' 		=> '_thumbnail_id',
+						'compare' 	=> 'NOT EXISTS'
+						
+					),
+					array(
+
+						'key' 		=> '_thumbnail_id',
+						'compare' 	=> 'NOT EXISTS',
+						'value' 	=> ''
+						
+					)
+
+				)
+
+			);
+
+			$aPosts = get_posts( $aQueryArgs );
+			if( is_array($aPosts) && count($aPosts) > 0 ){
+
+				foreach ( $aPosts as $nP => $oPost ) {
+					
+					APIFPlugin::addFeaturedImage( $oPost );
+
+				}
+
+			}
+
+		}
+
 
 	}
 
 	// Add function when install plugin
 	register_activation_hook( __FILE__ , array( 'APIFPlugin', 'install' ) );
+	register_deactivation_hook( __FILE__ , array( 'APIFPlugin', 'uninstall' ) );
 	
 	// Set featured image before post is displayed on the site front-end (for old posts published before enabling this plugin).
-	add_action( 'the_post', array( 'APIFPlugin', 'addFeaturedImage' ) );
+	//add_action( 'the_post', array( 'APIFPlugin', 'addFeaturedImage' ) );
 
 	// Hooks added to set the thumbnail when publishing too.
 	add_action( 'new_to_publish', array( 'APIFPlugin', 'addFeaturedImage' ) );
@@ -267,6 +348,18 @@ if ( function_exists( 'add_theme_support' ) ) {
 	add_action( 'future_to_publish', array( 'APIFPlugin', 'addFeaturedImage' ) );
 
 	// Add custom Metadata to attachment
-	add_filter('wp_generate_attachment_metadata', array( 'APIFPlugin', 'addAttachmentMeta' ), 10, 2);
+	add_filter( 'wp_generate_attachment_metadata', array( 'APIFPlugin', 'addAttachmentMeta' ), 10, 2);
+
+	// Custom columns on admin post list page
+	add_filter( 'manage_posts_columns' , array( 'APIFPlugin', 'customColumns' ));
+	add_action( 'manage_posts_custom_column' , array( 'APIFPlugin', 'customColumnsData' ), 10, 2 );
+
+	// Action for Crons
+	add_action( 'apif_cron_daily_event', array( 'APIFPlugin', 'cronDaily' ) );
+
+	//if( isset($_REQUEST['apif_cron_daily_event']) ){
+	//	APIFPlugin::cronDaily();
+	//	die();
+	//}
 
 }

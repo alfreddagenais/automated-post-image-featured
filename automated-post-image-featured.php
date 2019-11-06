@@ -33,7 +33,7 @@ if ( function_exists( 'add_theme_support' ) ) {
 		/**
 		 * Install function.
 		 */
-		function install() {
+		public static function install() {
 			// do not generate any output here
 
 			$aIncludePostTypes      = array( 'post' );
@@ -74,7 +74,7 @@ if ( function_exists( 'add_theme_support' ) ) {
 						if( is_null($nPostThumbnailRelPostID) || empty($nPostThumbnailRelPostID) || !is_numeric($nPostThumbnailRelPostID) ){
 
 							update_post_meta( $nPostThumbnailID, '_rel_post_id', $nPostID );
-							$nPostThumbnailMeta = $aPostThumbnailMeta = $this->addAttachmentMeta( get_post_meta( $nPostThumbnailID, '_wp_attachment_metadata', TRUE ), $nPostThumbnailID ) ;
+							$nPostThumbnailMeta = $aPostThumbnailMeta = APIFPlugin::addAttachmentMeta( get_post_meta( $nPostThumbnailID, '_wp_attachment_metadata', TRUE ), $nPostThumbnailID ) ;
 
 						}
 
@@ -125,7 +125,7 @@ if ( function_exists( 'add_theme_support' ) ) {
 					$oQuery->the_post();
 
 					$nThumbnailID = get_the_ID();
-					$aPostThumbnailMeta = $this->addAttachmentMeta( get_post_meta( $nPostThumbnailID, '_wp_attachment_metadata', TRUE ), $nPostThumbnailID );
+					$aPostThumbnailMeta = APIFPlugin::addAttachmentMeta( get_post_meta( $nPostThumbnailID, '_wp_attachment_metadata', TRUE ), $nPostThumbnailID );
 
 				}
 
@@ -141,7 +141,7 @@ if ( function_exists( 'add_theme_support' ) ) {
 		 *
 		 * @param object $post Post Object.
 		 */
-		function addFeaturedImage( $oPost ) {
+		public static function addFeaturedImage( $oPost ) {
 			
 			$bAlreadyHasThumb 		= has_post_thumbnail();
 			$sPostType         		= get_post_type( $oPost->ID );
@@ -243,7 +243,7 @@ if ( function_exists( 'add_theme_support' ) ) {
 		 * @param array $aMeta Meta Array
 		 * @return array $aMeta Meta
 		 */
-		function addAttachmentMeta( $aMeta, $nAttachmentID ) {
+		public static function addAttachmentMeta( $aMeta, $nAttachmentID ) {
 			
 			update_post_meta( $nAttachmentID, 'height', (int) ( isset($aMeta['height']) ? $aMeta['height'] : 0 ));
 			update_post_meta( $nAttachmentID, 'width', (int) ( isset($aMeta['width']) ? $aMeta['width'] : 0 ));

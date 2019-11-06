@@ -106,7 +106,7 @@ if ( function_exists( 'add_theme_support' ) ) {
 					array(
 
 						'key' 		=> '_rel_post_id',
-						'compare' 	=> 'NOT EXISTS'
+						'compare' 	=> 'NOT EXISTS',
 						'value' 	=> ''
 						
 					)
@@ -178,7 +178,7 @@ if ( function_exists( 'add_theme_support' ) ) {
 							array(
 
 								'key' 		=> '_rel_post_id',
-								'compare' 	=> 'NOT EXISTS'
+								'compare' 	=> 'NOT EXISTS',
 								'value' 	=> ''
 								
 							)
@@ -193,7 +193,7 @@ if ( function_exists( 'add_theme_support' ) ) {
 								'key' 		=> 'height',
 								'value'   	=> 1200,
 								'type'    	=> 'numeric',
-								'compare' 	=> '>=',
+								'compare' 	=> '>='
 
 							),
 							array(
@@ -201,7 +201,7 @@ if ( function_exists( 'add_theme_support' ) ) {
 								'key' 		=> 'width',
 								'value'   	=> 1200,
 								'type'    	=> 'numeric',
-								'compare' 	=> '>=',
+								'compare' 	=> '>='
 								
 							)
 							

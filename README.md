@@ -6,7 +6,7 @@ Requires at least: 4.7
 Requires PHP: 7.0
 Tested up to: 5.2.2
 Stable tag: 1.0.0
-License: GPL2
+License: MIT License
 
 Automatically sets the featured image to the first image uploaded into the post (any post type with thumbnail support). So easy like that...
 

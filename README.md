@@ -12,7 +12,7 @@ Automatically sets the featured image to the first image uploaded into the post 
 
 == Description ==
 
-**NOTE: This plugin functionality is guaranteed by more than 10,000 active installs. But before installing this plugin bear in mind that its only purpose is to ADD the feature image ID to your post (in the same way that you would do using WP editor), it does not remove ANYTHING after deactivation.
+**NOTE: Before installing this plugin bear in mind that its only purpose is to ADD the feature image ID to your post (in the same way that you would do using WP editor), it does not remove ANYTHING after deactivation.
 Before asking for support please read [FAQ](https://github.com/alfreddagenais/automated-post-image-featured) and [this support thread](https://wordpress.org/support/topic/please-read-before-posting-4)**
 
 = How it works? =
